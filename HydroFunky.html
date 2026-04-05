@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>💧 HydroFunky</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f0f9f4;min-height:100vh;color:#1a1a1a}
+.app{max-width:420px;margin:0 auto;padding:0.75rem 1rem 2rem}
+.screen{display:none}.screen.active{display:block}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:0.75rem 0 1rem}
+.topbar h1{font-size:22px;font-weight:600;color:#1a1a1a}
+.icon-btn{background:#fff;border:1px solid #d0e8d8;border-radius:20px;padding:6px 16px;font-size:13px;color:#555;cursor:pointer;transition:background 0.15s}
+.icon-btn:hover{background:#e8f5ee}
+.container-picker{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:1rem}
+.copt{background:#fff;border:2px solid transparent;border-radius:12px;padding:10px 4px;text-align:center;cursor:pointer;transition:all 0.15s;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.copt:hover{border-color:#5DCAA5}
+.copt.selected{border-color:#1D9E75;background:#E1F5EE}
+.copt svg{display:block;margin:0 auto 4px}
+.copt .cname{font-size:11px;font-weight:600;color:#555}
+.copt.selected .cname{color:#085041}
+.copt .cml{font-size:10px;color:#999}
+.copt.selected .cml{color:#0F6E56}
+.wave-wrap{position:relative;width:130px;height:180px;margin:0 auto 1rem;cursor:pointer;transition:transform 0.1s}
+.wave-wrap:active{transform:scale(0.96)}
+.stats-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:1rem}
+.stat-card{background:#fff;border-radius:12px;padding:10px 8px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+.stat-val{font-size:20px;font-weight:600;color:#1a1a1a}
+.stat-lbl{font-size:11px;color:#888;margin-top:2px}
+.main-btn{width:100%;padding:15px;background:#1D9E75;color:#fff;border:none;border-radius:14px;font-size:16px;font-weight:600;cursor:pointer;margin-bottom:8px;transition:background 0.15s;letter-spacing:0.01em}
+.main-btn:active{background:#0F6E56}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.half-btn{padding:12px 8px;background:#fff;border:1px solid #d0e8d8;border-radius:12px;font-size:13px;color:#555;cursor:pointer;width:100%;transition:background 0.15s}
+.half-btn:hover{background:#e8f5ee}
+.ai-card{background:#E1F5EE;border:1px solid #9FE1CB;border-radius:12px;padding:12px 14px;margin-bottom:10px;min-height:64px}
+.ai-tag{font-size:10px;font-weight:700;color:#0F6E56;letter-spacing:0.08em;margin-bottom:5px}
+.ai-text{font-size:13px;color:#085041;line-height:1.65}
+.ai-text.loading{opacity:0.5;font-style:italic}
+.toast{background:#1D9E75;color:#fff;border-radius:12px;padding:11px 16px;font-size:14px;margin-bottom:10px;display:none;animation:slidedown 0.3s ease;font-weight:500}
+@keyframes slidedown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.bouncing{animation:bounce 0.4s ease}
+.progress-outer{height:10px;background:#d4ede3;border-radius:5px;overflow:hidden;margin-bottom:6px}
+.progress-inner{height:100%;background:#1D9E75;border-radius:5px;transition:width 0.4s}
+.progress-label{font-size:12px;color:#888;margin-bottom:14px;text-align:center}
+.hist-item{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #eee;font-size:13px;color:#555}
+.hist-item:last-child{border-bottom:none}
+.hist-badge{background:#E1F5EE;color:#085041;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:600}
+.srow{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #eee}
+.srow:last-child{border-bottom:none}
+.srow label{font-size:14px;color:#555}
+.srow select,.srow input[type=number],.srow input[type=text]{background:#f5f5f5;border:1px solid #ddd;border-radius:8px;padding:6px 10px;font-size:14px;color:#1a1a1a;width:115px;text-align:center}
+.card{background:#fff;border:1px solid #d8eed8;border-radius:16px;padding:1rem 1.1rem;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.05)}
+.new-badge{background:#FAEEDA;color:#633806;border-radius:20px;padding:1px 6px;font-size:9px;font-weight:700;vertical-align:middle;margin-left:3px}
+.goal-met{background:#E1F5EE;border:1px solid #5DCAA5;border-radius:12px;padding:12px;text-align:center;margin-bottom:10px;display:none}
+.goal-met p{font-size:15px;font-weight:600;color:#085041}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div id="s-home" class="screen active">
+  <div class="topbar">
+    <h1>💧 HydroFunky</h1>
+    <button class="icon-btn" onclick="go('settings')">⚙ Settings</button>
+  </div>
+  <div id="toast" class="toast"></div>
+  <div id="goal-met-banner" class="goal-met">
+    <p>🎉 Goal reached! You're a hydration hero!</p>
+  </div>
+  <div class="card">
+    <div style="font-size:12px;color:#888;margin-bottom:8px;text-align:center">What are you drinking from?</div>
+    <div class="container-picker" id="container-picker"></div>
+  </div>
+  <div class="card" style="text-align:center">
+    <div style="font-size:12px;color:#888;margin-bottom:8px">Tap the bottle to log a drink!</div>
+    <div class="wave-wrap" onclick="logDrink()" id="wave-wrap">
+      <svg id="bottle-svg" width="130" height="180" viewBox="0 0 130 180"></svg>
+    </div>
+    <div class="progress-outer"><div class="progress-inner" id="prog-inner" style="width:0%"></div></div>
+    <div class="progress-label" id="prog-label">0 ml of <span id="goal-ml-label">2000</span> ml goal</div>
+  </div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-val" id="stat-ml">0</div><div class="stat-lbl">ml today</div></div>
+    <div class="stat-card"><div class="stat-val" id="stat-pct">0%</div><div class="stat-lbl">of goal</div></div>
+    <div class="stat-card"><div class="stat-val">🔥<span id="stat-streak">0</span></div><div class="stat-lbl">day streak</div></div>
+  </div>
+  <div class="ai-card">
+    <div class="ai-tag">✨ AI HYDRATION COACH</div>
+    <div class="ai-text loading" id="ai-home-text">Tap "Get AI tip" to get a personalised message...</div>
+  </div>
+  <button class="main-btn" onclick="logDrink()">+ Log a drink</button>
+  <div class="row2">
+    <button class="half-btn" onclick="getAITip()">✨ Get AI tip</button>
+    <button class="half-btn" onclick="go('history')">📋 History</button>
+  </div>
+</div>
+
+<div id="s-history" class="screen">
+  <div class="topbar"><h1>History</h1><button class="icon-btn" onclick="go('home')">← Back</button></div>
+  <div class="card">
+    <div style="font-size:14px;font-weight:600;margin-bottom:10px;color:#1a1a1a">Today's log</div>
+    <div id="hist-list"></div>
+  </div>
+  <div class="ai-card">
+    <div class="ai-tag">✨ AI MOTIVATION</div>
+    <div class="ai-text loading" id="ai-hist-text">Click below to get fired up...</div>
+  </div>
+  <button class="main-btn" onclick="getAIMotiv()">✨ Motivate me!</button>
+</div>
+
+<div id="s-settings" class="screen">
+  <div class="topbar"><h1>Settings</h1><button class="icon-btn" onclick="go('home')">← Back</button></div>
+  <div class="card">
+    <div class="srow">
+      <label>Daily goal (ml)</label>
+      <input type="number" id="goal-input" value="2000" min="500" max="5000" step="100" onchange="saveSettings()">
+    </div>
+    <div class="srow">
+      <label>Remind me every</label>
+      <select id="remind-sel" onchange="saveSettings()">
+        <option value="30">30 min</option>
+        <option value="60" selected>1 hour</option>
+        <option value="90">1.5 hrs</option>
+        <option value="120">2 hours</option>
+      </select>
+    </div>
+    <div class="srow">
+      <label>Your name</label>
+      <input type="text" id="name-input" placeholder="e.g. Rahul" onchange="saveSettings()">
+    </div>
+  </div>
+  <div class="card" style="font-size:13px;color:#888;line-height:1.7">
+    <strong style="color:#1a1a1a;font-size:14px">How to host for free</strong><br>
+    1. Save this file as <code>index.html</code><br>
+    2. Go to <a href="https://github.com" style="color:#1D9E75">github.com</a> → New repo<br>
+    3. Upload the file → Enable GitHub Pages<br>
+    4. Share your link with anyone! 🎉
+  </div>
+  <button class="main-btn" style="background:#378ADD" onclick="setReminder()">🔔 Enable reminders</button>
+  <button class="half-btn" style="width:100%;margin-bottom:8px" onclick="resetDay()">🔄 Reset today</button>
+</div>
+
+</div>
+
+<script>
+const CONTAINERS = [
+  {id:'shot',   name:'Shot glass', ml:60,   icon:'shot'},
+  {id:'glass',  name:'Glass',      ml:250,  icon:'glass'},
+  {id:'mug',    name:'Mug',        ml:350,  icon:'mug'},
+  {id:'b500',   name:'Bottle 500', ml:500,  icon:'bottle'},
+  {id:'b750',   name:'Bottle 750', ml:750,  icon:'bottle'},
+  {id:'b1l',    name:'Bottle 1L',  ml:1000, icon:'bottle'},
+  {id:'b2l',    name:'Bottle 2L',  ml:2000, icon:'bottle2l', isNew:true},
+  {id:'sipper', name:'Sipper',     ml:600,  icon:'sipper'},
+  {id:'jug',    name:'Jug',        ml:1500, icon:'jug'},
+];
+
+let state = {
+  totalMl:0, goalMl:2000, selectedContainer:3,
+  history:[], streak:0, name:'', reminderTimer:null, reminderInterval:60,
+};
+
+function svgIcon(type, size=28) {
+  const h = Math.round;
+  const icons = {
+    shot:`<svg width="${size}" height="${h(size*1.4)}" viewBox="0 0 32 45"><rect x="8" y="8" width="16" height="32" rx="3" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.2"/><rect x="9" y="9" width="14" height="28" rx="2" fill="#E6F1FB"/><rect x="6" y="37" width="20" height="4" rx="2" fill="#378ADD"/></svg>`,
+    glass:`<svg width="${size}" height="${h(size*1.4)}" viewBox="0 0 32 45"><path d="M6 4 L10 40 L22 40 L26 4 Z" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.2"/><path d="M7 4 L11 36 L21 36 L25 4 Z" fill="#E6F1FB"/><rect x="8" y="38" width="16" height="4" rx="2" fill="#378ADD"/></svg>`,
+    mug:`<svg width="${size}" height="${h(size*1.4)}" viewBox="0 0 40 45"><rect x="4" y="8" width="24" height="30" rx="4" fill="#9FE1CB" stroke="#1D9E75" stroke-width="1.2"/><rect x="5" y="9" width="22" height="26" rx="3" fill="#E1F5EE"/><path d="M28 14 Q38 14 38 23 Q38 32 28 32" fill="none" stroke="#1D9E75" stroke-width="2" stroke-linecap="round"/><rect x="4" y="36" width="24" height="4" rx="2" fill="#1D9E75"/></svg>`,
+    bottle:`<svg width="${size}" height="${h(size*1.7)}" viewBox="0 0 32 55"><rect x="11" y="2" width="10" height="8" rx="3" fill="#378ADD"/><path d="M6 14 Q4 20 4 28 L4 46 Q4 50 16 50 Q28 50 28 46 L28 28 Q28 20 26 14 Q23 10 16 10 Q9 10 6 14Z" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.2"/><path d="M7 16 Q5 22 5 30 L5 44 Q5 48 16 48 Q27 48 27 44 L27 30 Q27 22 25 16" fill="#E6F1FB" stroke="none"/></svg>`,
+    bottle2l:`<svg width="${size}" height="${h(size*2.1)}" viewBox="0 0 32 68"><rect x="11" y="1" width="10" height="9" rx="3" fill="#D4537E"/><rect x="9" y="8" width="14" height="5" rx="2" fill="#D4537E" opacity="0.6"/><path d="M5 18 Q3 26 3 36 L3 58 Q3 63 16 63 Q29 63 29 58 L29 36 Q29 26 27 18 Q24 12 16 12 Q8 12 5 18Z" fill="#F4C0D1" stroke="#D4537E" stroke-width="1.4"/><path d="M6 20 Q4 28 4 38 L4 56 Q4 61 16 61 Q28 61 28 56 L28 38 Q28 28 26 20" fill="#FBEAF0" stroke="none"/><rect x="10" y="30" width="5" height="22" rx="2.5" fill="white" opacity="0.22"/><text x="16" y="50" text-anchor="middle" font-size="7" font-weight="700" fill="#993556">2L</text></svg>`,
+    sipper:`<svg width="${size}" height="${h(size*1.7)}" viewBox="0 0 32 55"><rect x="11" y="0" width="10" height="6" rx="3" fill="#534AB7"/><path d="M14 6 L14 2" stroke="#534AB7" stroke-width="2" stroke-linecap="round"/><path d="M5 16 Q4 22 4 30 L4 46 Q4 50 16 50 Q28 50 28 46 L28 30 Q28 22 27 16 Q24 10 16 10 Q8 10 5 16Z" fill="#CECBF6" stroke="#534AB7" stroke-width="1.2"/><path d="M6 18 Q5 24 5 32 L5 44 Q5 48 16 48 Q27 48 27 44 L27 32" fill="#EEEDFE" stroke="none"/></svg>`,
+    jug:`<svg width="${size}" height="${h(size*1.4)}" viewBox="0 0 44 55"><rect x="4" y="8" width="28" height="38" rx="5" fill="#FAC775" stroke="#BA7517" stroke-width="1.2"/><rect x="5" y="9" width="26" height="34" rx="4" fill="#FAEEDA"/><path d="M32 16 Q42 16 42 27 Q42 38 32 38" fill="none" stroke="#BA7517" stroke-width="2.5" stroke-linecap="round"/><rect x="10" y="2" width="12" height="8" rx="3" fill="#BA7517"/><rect x="4" y="44" width="28" height="5" rx="3" fill="#BA7517"/></svg>`,
+  };
+  return icons[type] || icons['bottle'];
+}
+
+function buildContainerPicker() {
+  document.getElementById('container-picker').innerHTML = CONTAINERS.map((c,i)=>`
+    <div class="copt${i===state.selectedContainer?' selected':''}" onclick="selectContainer(${i})">
+      ${svgIcon(c.icon)}
+      <div class="cname">${c.name}${c.isNew?'<span class="new-badge">NEW</span>':''}</div>
+      <div class="cml">${c.ml}ml</div>
+    </div>
+  `).join('');
+}
+
+function selectContainer(i) {
+  state.selectedContainer = i;
+  buildContainerPicker();
+  drawBottle();
+}
+
+function drawBottle() {
+  const svg = document.getElementById('bottle-svg');
+  const pct = Math.min(1, state.totalMl / state.goalMl);
+  const c = CONTAINERS[state.selectedContainer];
+  const colMap = {
+    shot:{body:'#B5D4F4',water:'#378ADD',border:'#185FA5'},
+    glass:{body:'#B5D4F4',water:'#378ADD',border:'#185FA5'},
+    mug:{body:'#9FE1CB',water:'#1D9E75',border:'#0F6E56'},
+    bottle:{body:'#B5D4F4',water:'#1D9E75',border:'#185FA5'},
+    bottle2l:{body:'#F4C0D1',water:'#D4537E',border:'#993556'},
+    sipper:{body:'#CECBF6',water:'#534AB7',border:'#3C3489'},
+    jug:{body:'#FAC775',water:'#BA7517',border:'#854F0B'},
+  };
+  const col = colMap[c.icon] || colMap.bottle;
+  const cx=65, bodyTop=42, bodyH=130, bodyBot=172, bodyW=90, neckTop=20, neckH=22, neckW=38;
+  const bw2=bodyW/2;
+  const waterH=Math.round((bodyH-6)*pct);
+  const waterY=bodyBot-waterH;
+  const waveAmp=pct>0?5:0;
+  const wave=`M${cx-bw2+3} ${waterY} Q${cx-bw2/2} ${waterY-waveAmp} ${cx} ${waterY} Q${cx+bw2/2} ${waterY+waveAmp} ${cx+bw2-3} ${waterY} L${cx+bw2-3} ${bodyBot-3} Q${cx+bw2-3} ${bodyBot} ${cx+bw2-8} ${bodyBot} L${cx-bw2+8} ${bodyBot} Q${cx-bw2+3} ${bodyBot} ${cx-bw2+3} ${bodyBot-3} Z`;
+  const bp=`M${cx-bw2+3} ${bodyTop} Q${cx-bw2} ${bodyTop+10} ${cx-bw2} ${bodyTop+20} L${cx-bw2} ${bodyBot-6} Q${cx-bw2} ${bodyBot} ${cx-bw2+8} ${bodyBot} L${cx+bw2-8} ${bodyBot} Q${cx+bw2} ${bodyBot} ${cx+bw2} ${bodyBot-6} L${cx+bw2} ${bodyTop+20} Q${cx+bw2} ${bodyTop+10} ${cx+bw2-3} ${bodyTop} Z`;
+  svg.innerHTML=`
+    <rect x="${cx-neckW/2}" y="${neckTop}" width="${neckW}" height="${neckH}" rx="5" fill="${col.body}" stroke="${col.border}" stroke-width="1.5"/>
+    <rect x="${cx-neckW/2+2}" y="${neckTop}" width="${neckW-4}" height="6" rx="3" fill="${col.border}" opacity="0.5"/>
+    <path d="${bp}" fill="${col.body}" stroke="${col.border}" stroke-width="1.5"/>
+    ${pct>0?`<clipPath id="bcl"><path d="${bp}"/></clipPath><path d="${wave}" fill="${col.water}" opacity="0.85" clip-path="url(#bcl)"/>`:''}
+    <rect x="${cx-bw2+16}" y="${bodyTop+12}" width="8" height="${Math.round(bodyH*0.45)}" rx="4" fill="white" opacity="0.22"/>
+    <rect x="${cx-bw2+28}" y="${bodyTop+8}" width="4" height="${Math.round(bodyH*0.3)}" rx="2" fill="white" opacity="0.15"/>
+    <text x="${cx}" y="${bodyTop+bodyH/2+6}" text-anchor="middle" font-size="15" font-weight="600" fill="${pct>0.4?'white':col.border}">${Math.round(pct*100)}%</text>
+  `;
+}
+
+function logDrink() {
+  const c = CONTAINERS[state.selectedContainer];
+  state.totalMl += c.ml;
+  const now = new Date();
+  state.history.push({time:now.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}),container:c.name,ml:c.ml});
+  if(state.totalMl>=state.goalMl) {
+    if(state.streak===0) state.streak=1;
+    document.getElementById('goal-met-banner').style.display='block';
+  }
+  drawBottle(); updateStats();
+  showToast(`+${c.ml}ml logged! (${c.name}) 💧`);
+  const w=document.getElementById('wave-wrap');
+  w.classList.add('bouncing');
+  setTimeout(()=>w.classList.remove('bouncing'),400);
+}
+
+function updateStats() {
+  const pct=Math.min(100,Math.round((state.totalMl/state.goalMl)*100));
+  document.getElementById('stat-ml').textContent=state.totalMl;
+  document.getElementById('stat-pct').textContent=pct+'%';
+  document.getElementById('stat-streak').textContent=state.streak;
+  document.getElementById('prog-inner').style.width=pct+'%';
+  document.getElementById('prog-label').textContent=state.totalMl+' ml of '+state.goalMl+' ml goal';
+  document.getElementById('goal-ml-label').textContent=state.goalMl;
+}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.style.display='block';
+  setTimeout(()=>{t.style.display='none';},3000);
+}
+
+function go(s){
+  document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active'));
+  document.getElementById('s-'+s).classList.add('active');
+  if(s==='history') renderHistory();
+}
+
+function renderHistory(){
+  const el=document.getElementById('hist-list');
+  if(!state.history.length){el.innerHTML='<div style="font-size:13px;color:#999;padding:8px 0">Nothing logged yet today.</div>';return;}
+  el.innerHTML=state.history.map(h=>`<div class="hist-item"><span>${h.time} — ${h.container}</span><span class="hist-badge">+${h.ml}ml</span></div>`).join('');
+}
+
+function saveSettings(){
+  state.goalMl=parseInt(document.getElementById('goal-input').value)||2000;
+  state.reminderInterval=parseInt(document.getElementById('remind-sel').value)||60;
+  state.name=document.getElementById('name-input').value||'';
+  updateStats(); drawBottle();
+}
+
+function resetDay(){
+  state.totalMl=0; state.history=[];
+  document.getElementById('goal-met-banner').style.display='none';
+  drawBottle(); updateStats();
+  showToast('Day reset! Fresh start 💧'); go('home');
+}
+
+function setReminder(){
+  if(state.reminderTimer) clearInterval(state.reminderTimer);
+  state.reminderTimer=setInterval(()=>showToast('⏰ Time to drink water!'),state.reminderInterval*60*1000);
+  showToast('Reminders set every '+state.reminderInterval+' min!'); go('home');
+}
+
+async function callAI(prompt){
+  try {
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:100,messages:[{role:'user',content:prompt}]})});
+    const d=await res.json();
+    return d.content?.map(b=>b.text||'').join('')||'Stay hydrated!';
+  } catch(e){ return 'Keep sipping — every drop counts!'; }
+}
+
+async function getAITip(){
+  const el=document.getElementById('ai-home-text');
+  el.textContent='Thinking...'; el.className='ai-text loading';
+  const c=CONTAINERS[state.selectedContainer];
+  const name=state.name||'friend';
+  const msg=await callAI(`${name} has drunk ${state.totalMl}ml of their ${state.goalMl}ml daily water goal using a ${c.name}. Give one short fun friendly hydration tip in 1-2 sentences. Casual tone. No emojis.`);
+  el.textContent=msg; el.className='ai-text';
+}
+
+async function getAIMotiv(){
+  const el=document.getElementById('ai-hist-text');
+  el.textContent='Generating...'; el.className='ai-text loading';
+  const name=state.name||'friend';
+  const msg=await callAI(`${name} has had ${state.totalMl}ml of water today, goal is ${state.goalMl}ml. Give one punchy motivating sentence. Max 20 words. Fun tone. No emojis.`);
+  el.textContent=msg; el.className='ai-text';
+}
+
+buildContainerPicker();
+drawBottle();
+updateStats();
+</script>
+</body>
+</html>
